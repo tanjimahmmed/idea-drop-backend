@@ -27,7 +27,7 @@ router.get('/:id', async (req, res, next) => {
             res.status(400);
             throw new Error('Idea Not Found');
         }
-        
+
         const idea = await Idea.findById(req.params.id);
 
         if(!idea){
@@ -44,10 +44,34 @@ router.get('/:id', async (req, res, next) => {
 // @route POST /api/ideas
 // @description Create new ideas
 // @access Public
-router.post('/', (req, res) => {
-    const {title, description} = req.body;
+router.post('/', async (req, res, next) => {
+    try {
+        const {title, summary, description, tags} = req.body;
 
-    res.send(title)
+        if(!title?.trim() || !summary?.trim() || !description?.trim()){
+            res.status(400);
+            throw new Error('Title, summary and description are required')
+        }
+
+        const newIdea = new Idea({
+            title,
+            summary,
+            description,
+            tags: typeof tags === 'string'
+            ? tags.split(',')
+            .map((tag) => tag.trim())
+            .filter(Boolean)
+            : Array.isArray(tags) ? tags : []
+        });
+
+        const savedIdea = await newIdea.save();
+        res.status(201).json(savedIdea);
+
+    }catch(err){
+        console.log(err);
+        next(err)
+        
+    }
 })
 
 export default router;
