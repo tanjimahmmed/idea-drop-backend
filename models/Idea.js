@@ -23,6 +23,6 @@ const ideaSchema = new mongoose.Schema({
     timestamps: true
 });
 
-const idea = mongoose.model('Idea', ideaSchema);
+const Idea = mongoose.model('Idea', ideaSchema);
 
-export default idea;
+export default Idea;
