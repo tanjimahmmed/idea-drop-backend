@@ -47,6 +47,59 @@ router.post('/register', async(req, res, next) => {
         console.log(err);
         next(err)
     }
+});
+
+// login
+router.post('/login', async (req, res, next) => {
+    try {
+        const {email, password} = req.body;
+
+        if(!email || !password) {
+            res.status(400);
+            throw new Error('Email and password are required')
+        }
+
+        // find user
+        const user = await User.findOne({email});
+
+        if(!user){
+            res.status(401);
+            throw new Error('Invalid Credentials')
+        }
+
+        // check if password matches
+        const isMatch = await user.matchPassword(password);
+
+        if(!isMatch){
+            res.status(401);
+            throw new Error('Invalid Credentials')
+        }
+
+        // Create Tokens
+        const payload = {userId: user._id.toString()}
+        const accessToken = await generateToken(payload, '1m');
+        const refreshToken = await generateToken(payload, '30d');
+
+        // Set refresh token
+        res.cookie('refreshToken', refreshToken, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === 'production',
+            sameSite: 'none',
+            maxAge: 30 * 24 * 60 * 60 * 100, // 30 days
+        });
+
+        res.status(201).json({
+            accessToken,
+            user: {
+                id: user._id,
+                name: user.name,
+                email: user.email
+            }
+        });
+    } catch(error) {
+        console.log(err);
+        next(err);
+    }
 })
 
 // logout
@@ -58,6 +111,6 @@ router.post('/logout', (req, res) => {
     });
 
     res.status(200).json({message: 'Logged out successfully'});
-})
+});
 
 export default router;
