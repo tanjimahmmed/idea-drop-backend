@@ -17,7 +17,8 @@ connectDB();
 
 // Cors config
 const allowedOrigins = [
-    'http://localhost:3000'
+    'http://localhost:3000',
+    'https://idea-drop-ui-ruby.vercel.app'
 ]
 
 
